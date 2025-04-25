@@ -12,6 +12,7 @@ from modules.console import *
 from modules.executor import *
 from modules.utilities import *
 
+meshbook_version = 1.3
 grace_period = 3 # Grace period will last for x (by default 3) second(s).
 
 async def init_connection(credentials: dict) -> meshctrl.Session:
@@ -149,17 +150,29 @@ async def main():
     '''
 
     parser = argparse.ArgumentParser(description="Process command-line arguments")
-    parser.add_argument("-mb", "--meshbook", type=str, help="Path to the meshbook yaml file.", required=True)
+    parser.add_argument("-mb", "--meshbook", type=str, help="Path to the meshbook yaml file.")
 
-    parser.add_argument("-oc", "--oscategories", type=str, help="Path to the Operating System categories JSON file.", required=False, default="./os_categories.json")
-    parser.add_argument("--conf", type=str, help="Path for the API configuration file (default: ./config.conf).", required=False, default="./config.conf")
-    parser.add_argument("--nograce", action="store_true", help="Disable the grace 3 seconds before running the meshbook.", required=False)
-    parser.add_argument("-i", "--indent", action="store_true", help="Use an JSON indentation of 4 when this flag is passed.", required=False)
-    parser.add_argument("-r", "--raw-result", action="store_true", help="Print the raw result", required=False)
-    parser.add_argument("-s", "--silent", action="store_true", help="Suppress terminal output", required=False)
+    parser.add_argument("-oc", "--oscategories", type=str, help="Path to the Operating System categories JSON file.", default="./os_categories.json")
+    parser.add_argument("--conf", type=str, help="Path for the API configuration file (default: ./config.conf).", default="./config.conf")
+    parser.add_argument("--nograce", action="store_true", help="Disable the grace 3 seconds before running the meshbook.")
+    parser.add_argument("-i", "--indent", action="store_true", help="Use an JSON indentation of 4 when this flag is passed.")
+    parser.add_argument("-r", "--raw-result", action="store_true", help="Print the raw result.")
+    parser.add_argument("-s", "--silent", action="store_true", help="Suppress terminal output.")
+    parser.add_argument("--shlex", action="store_true", help="Shlex the lines.")
+
+    parser.add_argument("-v", "--version", action="store_true", help="Show the Meshbook version.")
 
     args = parser.parse_args()
     local_categories_file = "./os_categories.json"
+
+    if args.version:
+        console.nice_print(args,
+                           console.text_color.reset + "MeshBook Version: " + console.text_color.yellow + str(meshbook_version))
+        return
+    
+    if not args.meshbook:
+        parser.print_help()
+        return
 
     try:
         with open(local_categories_file, "r") as file:

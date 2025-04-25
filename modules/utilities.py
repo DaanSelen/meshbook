@@ -129,14 +129,20 @@ class utilities:
             return await utilities.filter_targets(matched_devices, os_categories, target_os, ignore_categorisation, target_tag)
         return []
 
+import shlex
 class transform:
-    def process_shell_response(meshbook_result: dict) -> dict:
+    def process_shell_response(shlex_enable: bool, meshbook_result: dict) -> dict:
         for task_name, task_data in meshbook_result.items():
             if task_name == "Offline": # Failsafe
                 continue
 
             for node_responses in task_data["data"]:
                 task_result = node_responses["result"].splitlines()
+                
+                if shlex_enable:
+                    for index, line in enumerate(task_result):
+                        line = shlex.split(line)
+                        task_result[index] = line
 
                 clean_output = []
                 for line in task_result:

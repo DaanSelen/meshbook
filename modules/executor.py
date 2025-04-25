@@ -53,7 +53,7 @@ class executor:
 
         if args.indent:
             if not args.raw_result:
-                responses_list = transform.process_shell_response(responses_list)
+                responses_list = transform.process_shell_response(args.shlex, responses_list)
             console.nice_print(args,
                                json.dumps(responses_list,indent=4), True)
                 
