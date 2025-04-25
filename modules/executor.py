@@ -41,7 +41,7 @@ class executor:
                 "data": task_batch
             }
             round += 1
-            sleep(0.5) # Sleep for 0.5 seconds. 
+            sleep(0.5) # Sleep for 0.5 seconds.
 
         for index, device in enumerate(offline): # Replace Device_id with actual human readable name
             device_name = await transform.translate_nodeid_to_name(device, group_list)

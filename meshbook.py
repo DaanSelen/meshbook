@@ -38,6 +38,7 @@ async def gather_targets(args: argparse.Namespace,
     target_list = []
     offline_list = []
     target_os = meshbook.get("target_os")
+    ignore_categorisation = meshbook.get("ignore_categorisation")
     target_tag = meshbook.get("target_tag")
 
     match meshbook:
@@ -47,12 +48,14 @@ async def gather_targets(args: argparse.Namespace,
                                                                             group_list,
                                                                             os_categories,
                                                                             target_os,
+                                                                            ignore_categorisation,
                                                                             target_tag)
-                matched_devices = processed_devices["valid_devices"]
-                offline_devices = processed_devices["offline_devices"]
-
-                target_list.extend(matched_devices)
-                offline_list.extend(offline_devices)
+                if len(processed_devices) > 0:
+                    matched_devices = processed_devices["valid_devices"]
+                    target_list.extend(matched_devices)
+                if len(processed_devices) > 0:
+                    offline_devices = processed_devices["offline_devices"]
+                    offline_list.extend(offline_devices)
 
             else:
                 console.nice_print(args,
@@ -65,11 +68,13 @@ async def gather_targets(args: argparse.Namespace,
                                                                                 group_list,
                                                                                 os_categories,
                                                                                 target_os,
-                                                                                target_tag)
+                                                                                ignore_categorisation,
+                                                                                target_tag,)
+                if len(processed_devices) > 0:
                     matched_devices = processed_devices["valid_devices"]
-                    offline_devices = processed_devices["offline_devices"]
-
                     target_list.extend(matched_devices)
+                if len(processed_devices) > 0:
+                    offline_devices = processed_devices["offline_devices"]
                     offline_list.extend(offline_devices)
 
             else:
@@ -80,12 +85,14 @@ async def gather_targets(args: argparse.Namespace,
                 processed_devices = await utilities.filter_targets(group_list[pseudo_target],
                                                                     os_categories,
                                                                     target_os,
+                                                                    ignore_categorisation,
                                                                     target_tag)
-                matched_devices = processed_devices["valid_devices"]
-                offline_devices = processed_devices["offline_devices"]
-
-                target_list.extend(matched_devices)
-                offline_list.extend(offline_devices)
+                if len(processed_devices) > 0:
+                    matched_devices = processed_devices["valid_devices"]
+                    target_list.extend(matched_devices)
+                if len(processed_devices) > 0:
+                    offline_devices = processed_devices["offline_devices"]
+                    offline_list.extend(offline_devices)
 
             elif pseudo_target not in group_list:
                 console.nice_print(args,
@@ -103,11 +110,13 @@ async def gather_targets(args: argparse.Namespace,
                         processed_devices = await utilities.filter_targets(group_list[sub_pseudo_target],
                                                                             os_categories,
                                                                             target_os,
+                                                                            ignore_categorisation,
                                                                             target_tag)
+                    if len(processed_devices) > 0:
                         matched_devices = processed_devices["valid_devices"]
-                        offline_devices = processed_devices["offline_devices"]
-
                         target_list.extend(matched_devices)
+                    if len(processed_devices) > 0:
+                        offline_devices = processed_devices["offline_devices"]
                         offline_list.extend(offline_devices)
 
             elif pseudo_target.lower() == "all":
@@ -115,12 +124,14 @@ async def gather_targets(args: argparse.Namespace,
                     processed_devices = await utilities.filter_targets(group_list[group],
                                                                         os_categories,
                                                                         target_os,
+                                                                        ignore_categorisation,
                                                                         target_tag)
-                    matched_devices = processed_devices["valid_devices"]
-                    offline_devices = processed_devices["offline_devices"]
-
-                    target_list.extend(matched_devices)
-                    offline_list.extend(offline_devices)
+                    if len(processed_devices) > 0:
+                        matched_devices = processed_devices["valid_devices"]
+                        target_list.extend(matched_devices)
+                    if len(processed_devices) > 0:
+                        offline_devices = processed_devices["offline_devices"]
+                        offline_list.extend(offline_devices)
 
             else:
                 console.nice_print(args,
@@ -180,6 +191,16 @@ async def main():
         else:
             console.nice_print(args,
                                "Target Operating System category given: " + console.text_color.yellow + "All")
+            
+        # Should Meshbook ignore categorisation?
+        console.nice_print(args,
+                            "Ignore the OS Categorisation file: " + console.text_color.yellow + str(meshbook["ignore_categorisation"]))
+        if meshbook["ignore_categorisation"]:
+            console.nice_print(args,
+                               console.text_color.red + "!!!!\n" +
+                               console.text_color.yellow + 
+                               "Ignore categorisation is True.\nThis means that the program checks if the target Operating System is somewhere in the reported device Operating System." + 
+                               console.text_color.red + "\n!!!!")
         
         # TARGET TAG PRINTING
         if "target_tag" in meshbook:

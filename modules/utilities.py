@@ -10,7 +10,8 @@ Creation and compilation of the MeshCentral nodes list (list of all nodes availa
 '''
 
 class utilities:
-    async def load_config(args: argparse.Namespace, segment: str = 'meshcentral-account') -> dict:
+    async def load_config(args: argparse.Namespace,
+                          segment: str = 'meshcentral-account') -> dict:
         '''
         Function that loads the segment from the config.conf (by default) file and returns the it in a dict.
         '''
@@ -42,19 +43,20 @@ class utilities:
         meshbook = await transform.replace_placeholders(yaml.safe_load(meshbook))
         return meshbook
     
-    def get_os_variants(category: str, os_map: dict) -> set:
+    def get_os_variants(target_category: str,
+                        os_map: dict) -> set:
         '''
         Extracts all OS names under a given category if it exists.
         '''
 
         for key, value in os_map.items():
-            if key == category:
+            if key == target_category:
 
                 if isinstance(value, dict):  # Expand nested categories
                     os_set = set()
 
-                    for subcat in value:
-                        os_set.update(utilities.get_os_variants(subcat, value))
+                    for sub_target_cat in value:
+                        os_set.update(utilities.get_os_variants(sub_target_cat, value))
 
                     return os_set
 
@@ -63,14 +65,17 @@ class utilities:
 
         return set()
 
-    async def filter_targets(devices: list[dict], os_categories: dict, target_os: str = None, target_tag: str = None) -> dict:
+    async def filter_targets(devices: list[dict],
+                             os_categories: dict,
+                             target_os: str = None,
+                             ignore_categorisation: bool = False,
+                             target_tag: str = None) -> dict:
         '''
         Filters devices based on reachability and optional OS criteria, supporting nested OS categories.
         '''
 
         valid_devices = []
         offline_devices = []
-        allowed_os = set()
 
         # Identify correct OS filtering scope
         for key in os_categories:
@@ -86,8 +91,12 @@ class utilities:
             if target_tag and target_tag not in device["device_tags"]:
                 continue
 
-            if device["device_os"] not in allowed_os:
-                continue
+            if not ignore_categorisation:
+                if device["device_os"] not in allowed_os:
+                    continue                
+            else:
+                if target_os not in device["device_os"]:
+                    continue
 
             if not device["reachable"]:
                 offline_devices.append(device["device_id"])
@@ -100,7 +109,12 @@ class utilities:
             "offline_devices": offline_devices
         }
 
-    async def process_device_or_group(pseudo_target, group_list, os_categories, target_os, target_tag) -> dict:
+    async def process_device_or_group(pseudo_target: str,
+                                      group_list: dict,
+                                      os_categories: dict,
+                                      target_os: str,
+                                      ignore_categorisation: bool,
+                                      target_tag: str) -> dict:
         '''
         Helper function to process devices or groups.
         '''
@@ -112,7 +126,7 @@ class utilities:
                     matched_devices.append(device)
 
         if matched_devices:
-            return await utilities.filter_targets(matched_devices, os_categories, target_os, target_tag)
+            return await utilities.filter_targets(matched_devices, os_categories, target_os, ignore_categorisation, target_tag)
         return []
 
 class transform:
