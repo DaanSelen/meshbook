@@ -39,7 +39,7 @@ async def gather_targets(args: argparse.Namespace,
     target_list = []
     offline_list = []
     target_os = meshbook.get("target_os")
-    ignore_categorisation = meshbook.get("ignore_categorisation")
+    ignore_categorisation = meshbook.get("ignore_categorisation", False)
     target_tag = meshbook.get("target_tag")
 
     match meshbook:
@@ -206,14 +206,18 @@ async def main():
                                "Target Operating System category given: " + console.text_color.yellow + "All")
             
         # Should Meshbook ignore categorisation?
-        console.nice_print(args,
-                            "Ignore the OS Categorisation file: " + console.text_color.yellow + str(meshbook["ignore_categorisation"]))
-        if meshbook["ignore_categorisation"]:
+        if "ignore_categorisation" in meshbook:
             console.nice_print(args,
-                               console.text_color.red + "!!!!\n" +
-                               console.text_color.yellow + 
-                               "Ignore categorisation is True.\nThis means that the program checks if the target Operating System is somewhere in the reported device Operating System." + 
-                               console.text_color.red + "\n!!!!")
+                                "Ignore the OS Categorisation file: " + console.text_color.yellow + str(meshbook["ignore_categorisation"]))
+            if meshbook["ignore_categorisation"]:
+                console.nice_print(args,
+                                console.text_color.red + "!!!!\n" +
+                                console.text_color.yellow + 
+                                "Ignore categorisation is True.\nThis means that the program checks if the target Operating System is somewhere in the reported device Operating System." + 
+                                console.text_color.red + "\n!!!!")
+        else:
+            console.nice_print(args,
+                                "Ignore the OS Categorisation file: " + console.text_color.yellow + "False")
         
         # TARGET TAG PRINTING
         if "target_tag" in meshbook:
