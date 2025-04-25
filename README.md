@@ -147,30 +147,47 @@ tasks:
 The following response it received when executing the first yaml of the above files (without the `-s` parameters, which just outputs the below JSON).
 
 ```shell
-~/meshbook$ python3 meshbook.py -pb examples/echo_example.yaml
+$ python3 meshbook.py -mb books/aggregate_example.yaml -i --nograce -pr
+
 ----------------------------------------
-Playbook: examples/echo_example.yaml
+meshbook: books/aggregate_example.yaml
 Operating System Categorisation file: ./os_categories.json
-Congiguration file: ./meshcentral.conf
-Target group: Development
-Grace: True
+Configuration file: ./config.conf
+Target Operating System category given: Linux
+Target group: Systemec Development
+Grace: False
 Silent: False
 ----------------------------------------
 Trying to load the MeshCentral account credential file...
-Trying to load the Playbook yaml file and compile it into something workable...
+Trying to load the meshbook yaml file and compile it into something workable...
 Trying to load the Operating System categorisation JSON file...
 Connecting to MeshCentral and establish a session using variables from previous credential file.
 Generating group list with nodes and reference the targets from that.
 ----------------------------------------
 Executing playbook on the target(s): Development.
-Initiating grace-period...
-1...
-2...
-3...
 ----------------------------------------
-1. Running: Echo!
+1. Running: Ping!
 ----------------------------------------
-{"Task 1": "ALL THE DATA"} # Not sharing due to PID
+{
+  "Task 1": {
+    "task_name": "Ping Quad9 DNS",
+    "data": [
+        {
+            "complete": true,
+            "result": [
+                "PING 9.9.9.9 (9.9.9.9) 56(84) bytes of data.",
+                "64 bytes from 9.9.9.9: icmp_seq=1 ttl=61 time=26.8 ms",
+                "--- 9.9.9.9 ping statistics ---",
+                "1 packets transmitted, 1 received, 0% packet loss, time 0ms",
+                "rtt min/avg/max/mdev = 26.809/26.809/26.809/0.000 ms"
+            ],
+            "command": "ping 9.9.9.9 -c 1",
+            "device_id": "yourn nodeip",
+            "device_name": "yournodename"
+        }
+    ]
+  }
+}
 ```
 The above without `-s` is quite verbose. use `--help` to read about parameters and getting a minimal response for example.
 
