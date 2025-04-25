@@ -2,6 +2,7 @@
 import argparse
 import json
 import meshctrl
+from time import sleep
 
 # Local Python libraries/modules
 from modules.console import console
@@ -40,6 +41,7 @@ class executor:
                 "data": task_batch
             }
             round += 1
+            sleep(0.5) # Sleep for 0.5 seconds. 
 
         for index, device in enumerate(offline): # Replace Device_id with actual human readable name
             device_name = await transform.translate_nodeid_to_name(device, group_list)
