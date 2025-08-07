@@ -13,7 +13,7 @@ from modules.console import *
 from modules.executor import *
 from modules.utilities import *
 
-meshbook_version = 1.3
+meshbook_version = "1.3.1"
 grace_period = 3 # Grace period will last for x (by default 3) second(s).
 
 async def init_connection(credentials: dict) -> meshctrl.Session:
@@ -47,11 +47,6 @@ async def gather_targets(args: argparse.Namespace,
     '''
     Finds target devices based on meshbook criteria (device or group).
     '''
-
-    if args.group != "":
-        meshbook["group"] = args.device
-    elif args.device != "":
-        meshbook["device"] == args.group
 
     target_list = []
     offline_list = []
@@ -201,6 +196,11 @@ async def main():
             (utilities.load_config(args)),
             (utilities.compile_book(args.meshbook))
         )
+
+        if args.group != "":
+            meshbook["group"] = args.group
+        elif args.device != "":
+            meshbook["device"] == args.device
 
         '''
         The following section mainly displays used variables and first steps of the program to the console.
