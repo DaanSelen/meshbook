@@ -48,6 +48,11 @@ async def gather_targets(args: argparse.Namespace,
     Finds target devices based on meshbook criteria (device or group).
     '''
 
+    if args.group != "":
+        meshbook["group"] = args.device
+    elif args.device != "":
+        meshbook["device"] == args.group
+
     target_list = []
     offline_list = []
     target_os = meshbook.get("target_os")
@@ -166,7 +171,9 @@ async def main():
 
     parser.add_argument("-oc", "--oscategories", type=str, help="Path to the Operating System categories JSON file.", default="./os_categories.json")
     parser.add_argument("--conf", type=str, help="Path for the API configuration file (default: ./config.conf).", default="./api.conf")
-    parser.add_argument("--nograce", action="store_true", help="Disable the grace 3 seconds before running the meshbook.", default=False)
+    parser.add_argument("--nograce", action="store_true", help="Disable the grace 3 seconds before running the meshbook.")
+    parser.add_argument("-g", "--group", type=str, help="Specify a manual override for the group.", default="")
+    parser.add_argument("-d", "--device", type=str, help="Specify a manual override for a device", default="")
     parser.add_argument("-i", "--indent", action="store_true", help="Use an JSON indentation of 4 when this flag is passed.", default=False)
     parser.add_argument("-r", "--raw-result", action="store_true", help="Print the raw result.", default=False)
     parser.add_argument("-s", "--silent", action="store_true", help="Suppress terminal output.", default=False)
