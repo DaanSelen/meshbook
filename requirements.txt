@@ -1,4 +1,4 @@
 colorama==0.4.6
 pyyaml==6.0.3
-libmeshctrl==1.2.2
+libmeshctrl==1.3.1
 pyotp==2.9.0
