@@ -3,13 +3,14 @@ import argparse
 from configparser import ConfigParser
 import meshctrl
 import os
+import shlex
 import yaml
 
 '''
 Creation and compilation of the MeshCentral nodes list (list of all nodes available to the user in the configuration) is handled in the following section.
 '''
 
-class utilities:
+class Utilities:
     @staticmethod
     async def load_config(args: argparse.Namespace,
                           segment: str = 'meshcentral-account') -> dict:
@@ -43,9 +44,127 @@ class utilities:
 
         with open(meshbook_file, 'r') as f:
             meshbook = f.read()
-        meshbook = await transform.replace_placeholders(yaml.safe_load(meshbook))
+        meshbook = await Transform.replace_placeholders(yaml.safe_load(meshbook))
         return meshbook
-    
+
+    @staticmethod
+    async def gather_targets(args: argparse.Namespace,
+                            meshbook: dict,
+                            group_list: dict[str, list[dict]],
+                            os_categories: dict) -> dict:
+        """
+        Finds target devices based on meshbook criteria (device, devices, group or groups).
+        """
+
+        group_list = {k.lower(): v for k, v in group_list.items()}  # Normalize keys
+        target_list = []
+        offline_list = []
+
+        target_os = meshbook.get("target_os")
+        target_tag = meshbook.get("target_tag")
+        ignore_categorisation = meshbook.get("ignore_categorisation", False)
+
+        async def add_processed_devices(processed):
+            """Helper to update target and offline lists."""
+            if processed:
+                target_list.extend(processed.get("valid_devices", []))
+                offline_list.extend(processed.get("offline_devices", []))
+
+        async def process_device_helper(device):
+            processed = await Utilities.process_device(
+                device,
+                group_list,
+                os_categories,
+                target_os,
+                ignore_categorisation,
+                target_tag
+            )
+            await add_processed_devices(processed)
+
+        async def process_group_helper(group):
+            processed = await Utilities.filter_targets(
+                group, os_categories, target_os, ignore_categorisation, target_tag
+            )
+            await add_processed_devices(processed)
+
+        '''
+        Groups receive the first priority, then device targets.
+        '''
+        match meshbook:
+            case {"group": pseudo_target}:
+                if isinstance(pseudo_target, str):
+                    pseudo_target = pseudo_target.lower()
+
+                    if pseudo_target in group_list:
+                        await process_group_helper(group_list[pseudo_target])
+
+                    elif pseudo_target not in group_list:
+                        console.nice_print(
+                            args,
+                            console.text_color.yellow + "Targeted group not found on the MeshCentral server."
+                        )
+                elif isinstance(pseudo_target, list):
+                    console.nice_print(
+                        args,
+                        console.text_color.yellow + "Please use groups (Notice the plural with 'S') for multiple groups."
+                    )
+                else:
+                    console.nice_print(
+                        args,
+                        console.text_color.yellow + "The 'group' key is being used, but an unknown data type was found, please check your values."
+                    )
+
+            case {"groups": pseudo_target}:
+                if isinstance(pseudo_target, list):
+                    for sub_group in pseudo_target:
+                        sub_group = sub_group.lower()
+                        if sub_group in group_list:
+                            await process_group_helper(group_list[sub_group])
+                elif isinstance(pseudo_target, str) and pseudo_target.lower() == "all":
+                    for group in group_list.values():
+                        await process_group_helper(group)
+                elif isinstance(pseudo_target, str):
+                    console.nice_print(
+                        args,
+                        console.text_color.yellow + "The 'groups' key is being used, but only one string is given. Did you mean 'group'?"
+                    )
+                else:
+                    console.nice_print(
+                        args,
+                        console.text_color.yellow + "The 'groups' key is being used, but an unknown data type was found, please check your values."
+                    )
+
+            case {"device": pseudo_target}:
+                if isinstance(pseudo_target, str):
+                    await process_device_helper(pseudo_target)
+                elif isinstance(pseudo_target, list):
+                    console.nice_print(
+                        args,
+                        console.text_color.yellow + "Please use devices (Notice the plural with 'S') for multiple devices."
+                    )
+                else:
+                    console.nice_print(
+                        args,
+                        console.text_color.yellow + "The 'device' key is being used, but an unknown data type was found, please check your values."
+                    )
+
+            case {"devices": pseudo_target}:
+                if isinstance(pseudo_target, list):
+                    for sub_device in pseudo_target:
+                        await process_device_helper(sub_device)
+                elif isinstance(pseudo_target, str):
+                    console.nice_print(
+                        args,
+                        console.text_color.yellow + "The 'devices' key is being used, but only one string is given. Did you mean 'device'?"
+                    )
+                else:
+                    console.nice_print(
+                        args,
+                        console.text_color.yellow + "The 'devices' key is being used, but an unknown data type was found, please check your values."
+                    )
+
+        return {"target_list": target_list, "offline_list": offline_list}
+
     @staticmethod
     def get_os_variants(target_category: str,
                         os_map: dict) -> set:
@@ -60,7 +179,7 @@ class utilities:
                     os_set = set()
 
                     for sub_target_cat in value:
-                        os_set.update(utilities.get_os_variants(sub_target_cat, value))
+                        os_set.update(Utilities.get_os_variants(sub_target_cat, value))
 
                     return os_set
 
@@ -86,11 +205,11 @@ class utilities:
         # Identify correct OS filtering scope
         for key in os_categories:
             if key == target_os:
-                allowed_os = utilities.get_os_variants(target_os, os_categories)
+                allowed_os = Utilities.get_os_variants(target_os, os_categories)
                 break  # Stop searching once a match is found
 
             if isinstance(os_categories[key], dict) and target_os in os_categories[key]:
-                allowed_os = utilities.get_os_variants(target_os, os_categories[key])
+                allowed_os = Utilities.get_os_variants(target_os, os_categories[key])
                 break  # Stop searching once a match is found
 
         for device in devices: # Filter out unwanted or unreachable devices.
@@ -137,7 +256,7 @@ class utilities:
 
         # If matches found, filter them and add processed devices
         if matched_devices:
-            processed = await utilities.filter_targets(
+            processed = await Utilities.filter_targets(
                 matched_devices, os_categories, target_os, ignore_categorisation, target_tag
             )
             return processed
@@ -145,8 +264,21 @@ class utilities:
         # No matches found
         return {"valid_devices": [], "offline_devices": []}
 
-import shlex
-class transform:
+    @staticmethod
+    def path_exist(path: str) -> bool:
+        return os.path.exists(path)
+
+    @staticmethod
+    def path_type(path: str) -> str:
+        if os.path.isfile(path):
+            return "File"
+        if os.path.isdir(path):
+            return "Dir"
+        if os.path.islink(path):
+            return "Link"
+        return "Undefined"
+
+class Transform:
     @staticmethod
     def process_shell_response(shlex_enable: bool, meshbook_result: dict) -> dict:
         for task_name, task_data in meshbook_result.items():

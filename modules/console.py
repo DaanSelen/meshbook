@@ -1,7 +1,7 @@
 # Public Python libraries
 import argparse
 
-class console:
+class Console:
     class text_color:
             black = "\033[30m"
             red = "\033[31m"
@@ -15,12 +15,10 @@ class console:
             reset = "\x1B[0m"
 
     @staticmethod
-    def nice_print(args: argparse.Namespace, message: str, final: bool=False):
+    def nice_print(silent: bool, message: str):
         '''
         Helper function for terminal output, with a couple variables for the silent flag. Also clears terminal color each time.
         '''
 
-        if final:
-            print(message) # Assuming final message, there is no need for clearing.
-        elif not args.silent:
-            print(message + console.text_color.reset)
+        if not silent:
+            print(message + Console.text_color.reset)
