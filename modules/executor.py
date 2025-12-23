@@ -54,9 +54,10 @@ class Executor:
         Console.nice_print(args.silent,
                            Console.text_color.reset + ("-" * 40))
 
+        if args.shlex:
+            responses_list = Transform.process_shell_response(args.shlex, responses_list)
+
         if args.indent:
-            if not args.raw_result:
-                responses_list = Transform.process_shell_response(args.shlex, responses_list)
             Console.nice_print(args.silent,
                                json.dumps(responses_list,indent=4))
                 

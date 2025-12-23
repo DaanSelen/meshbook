@@ -33,7 +33,6 @@ def define_cmdargs() -> argparse.ArgumentParser:
     parser.add_argument("-g", "--group", type=str, help="Specify a manual override for the group.", default="")
     parser.add_argument("-d", "--device", type=str, help="Specify a manual override for a device.", default="")
     parser.add_argument("-i", "--indent", action="store_true", help="Use an JSON indentation of 4 when this flag is passed.", default=False)
-    parser.add_argument("-r", "--raw-result", action="store_true", help="Print the raw result.", default=False)
     parser.add_argument("-s", "--silent", action="store_true", help="Suppress terminal output.", default=False)
     parser.add_argument("--shlex", action="store_true", help="Shlex the lines.", default=False)
 
