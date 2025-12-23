@@ -77,7 +77,7 @@ async def main():
     args = parser.parse_args()
 
     if args.version:
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            Console.text_color.reset + "MeshBook Version: " + Console.text_color.yellow + str(meshbook_version))
         return
 
@@ -90,7 +90,7 @@ async def main():
             os_categories = json.load(file)
 
         if not Utilities.path_exist(args.meshbook) or Utilities.path_type(args.meshbook) != "File":
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                Console.text_color.red + "The given meshbook path is either not present on the filesystem or not a file.")
             return
 
@@ -113,77 +113,75 @@ async def main():
         '''
 
         # INIT ARGUMENTS PRINTING
-        Console.nice_print(args.silent,
-                           Console.text_color.reset + ("-" * 40))
-        Console.nice_print(args.silent,
+        Console.print_line(args.silent)
+        Console.print_text(args.silent,
                            "meshbook: " + Console.text_color.yellow + args.meshbook + Console.text_color.reset + ".")
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            "Operating System Categorisation file: " + Console.text_color.yellow + args.oscategories + Console.text_color.reset + ".")
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            "Configuration file: " + Console.text_color.yellow + args.conf + Console.text_color.reset + ".")
 
         # TARGET OS PRINTING
         if "target_os" in meshbook:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                "Target Operating System category given: " + Console.text_color.yellow + meshbook["target_os"] + Console.text_color.reset + ".")
         else:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                "Target Operating System category given: " + Console.text_color.yellow + "All" + Console.text_color.reset + ".")
 
         # Should Meshbook ignore categorisation?
         if "ignore_categorisation" in meshbook:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                 "Ignore the OS Categorisation file: " + Console.text_color.yellow + str(meshbook["ignore_categorisation"]) + Console.text_color.reset + ".")
             if meshbook["ignore_categorisation"]:
-                Console.nice_print(args.silent,
+                Console.print_text(args.silent,
                                 Console.text_color.red + "!!!!\n" +
                                 Console.text_color.yellow + 
                                 "Ignore categorisation is True.\nThis means that the program checks if the target Operating System is somewhere in the reported device Operating System." + 
                                 Console.text_color.red + "\n!!!!")
         else:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                 "Ignore the OS Categorisation file: " + Console.text_color.yellow + "False" + Console.text_color.reset + ".")
 
         # TARGET TAG PRINTING
         if "target_tag" in meshbook:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                "Target Device tag given: " + Console.text_color.yellow + meshbook["target_tag"] + Console.text_color.reset + ".")
         else:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                "Target Device tag given: " + Console.text_color.yellow + "All" + Console.text_color.reset + ".")
 
         # TARGET PRINTING
         if "device" in meshbook:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                "Target device: " + Console.text_color.yellow + str(meshbook["device"]) + Console.text_color.reset + ".")
         elif "devices" in meshbook:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                "Target devices: " + Console.text_color.yellow + str(meshbook["devices"]) + Console.text_color.reset + ".")
         elif "group" in meshbook:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                "Target group: " + Console.text_color.yellow + str(meshbook["group"]) + Console.text_color.reset + ".")
         elif "groups" in meshbook:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                "Target groups: " + Console.text_color.yellow + str(meshbook["groups"]) + Console.text_color.reset + ".")
 
         # RUNNING PARAMETERS PRINTING
-        Console.nice_print(args.silent, "Grace: " + Console.text_color.yellow + str((not args.nograce))) # Negation of bool for correct explanation
-        Console.nice_print(args.silent, "Silent: " + Console.text_color.yellow + "False") # Can be pre-defined because if silent flag was passed then none of this would be printed.
+        Console.print_text(args.silent, "Grace: " + Console.text_color.yellow + str((not args.nograce))) # Negation of bool for correct explanation
+        Console.print_text(args.silent, "Silent: " + Console.text_color.yellow + "False") # Can be pre-defined because if silent flag was passed then none of this would be printed.
 
         session = await init_connection(credentials)
 
         # PROCESS PRINTING aka what its doing in the moment...
-        Console.nice_print(args.silent,
-                           Console.text_color.reset + ("-" * 40))
-        Console.nice_print(args.silent,
+        Console.print_line(args.silent)
+        Console.print_text(args.silent,
                            Console.text_color.italic + "Trying to load the MeshCentral account credential file...")
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            Console.text_color.italic + "Trying to load the meshbook yaml file and compile it into something workable...")
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            Console.text_color.italic + "Trying to load the Operating System categorisation JSON file...")
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            Console.text_color.italic + "Connecting to MeshCentral and establish a session using variables from previous credential file.")
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            Console.text_color.italic + "Generating group list with nodes and reference the targets from that.")
 
         '''
@@ -193,63 +191,66 @@ async def main():
         group_list = await Transform.compile_group_list(session)
         compiled_device_list = await Utilities.gather_targets(args, meshbook, group_list, os_categories)
 
+        # Check if we have reachable targets on the MeshCentral host
         if "target_list" not in compiled_device_list or len(compiled_device_list["target_list"]) == 0:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                Console.text_color.red + "No targets found or targets unreachable, quitting.")
 
-            Console.nice_print(args.silent,
-                               Console.text_color.reset + ("-" * 40))
+            Console.print_line(args.silent)
+            return
 
-        else:
-            Console.nice_print(args.silent,
-                               Console.text_color.reset + ("-" * 40))
+        Console.print_line(args.silent)
 
-            match meshbook:
-                case {"group": candidate_target_name}:
-                    target_name = candidate_target_name
+        match meshbook:
+            case {"group": candidate_target_name}:
+                target_name = candidate_target_name
 
-                case {"groups": candidate_target_name}:
-                    target_name = str(candidate_target_name)
+            case {"groups": candidate_target_name}:
+                target_name = str(candidate_target_name)
 
-                case {"device": candidate_target_name}:
-                    target_name = candidate_target_name
+            case {"device": candidate_target_name}:
+                target_name = candidate_target_name
 
-                case {"devices": candidate_target_name}:
-                    target_name = str(candidate_target_name)
+            case {"devices": candidate_target_name}:
+                target_name = str(candidate_target_name)
 
-                case _:
-                    target_name = ""
+            case _:
+                target_name = ""
 
-            historyclass = History()
+        # Initialize the history / logging functions class (whatever you want to name it)
+        historyclass = History(args.silent, args.historydir, args.flushhistory)
 
-            # From here on the actual exection happens
-            Console.nice_print(args.silent,
-                               Console.text_color.yellow + "Executing meshbook on the target(s): " + Console.text_color.green + target_name + Console.text_color.yellow + ".")
+        # Conclude history initlialization
+        Console.print_line(args.silent)
 
-            if not args.nograce:
-                Console.nice_print(args.silent,
-                                   Console.text_color.yellow + "Initiating grace-period...")
+        # From here on the actual exection happens
+        Console.print_text(args.silent,
+                            Console.text_color.yellow + "Executing meshbook on the target(s): " + Console.text_color.green + target_name + Console.text_color.yellow + ".")
 
-                for x in range(grace_period):
-                    Console.nice_print(args.silent,
-                                       Console.text_color.yellow + "{}...".format(x+1)) # Countdown!
-                    await asyncio.sleep(1)
+        if not args.nograce:
+            Console.print_text(args.silent,
+                                Console.text_color.yellow + "Initiating grace-period...")
 
-            Console.nice_print(args.silent, Console.text_color.reset + ("-" * 40))
-            await Executor.execute_meshbook(args,
-                                            session,
-                                            compiled_device_list,
-                                            meshbook,
-                                            group_list)
+            for x in range(grace_period):
+                Console.print_text(args.silent,
+                                    Console.text_color.yellow + "{}...".format(x+1)) # Countdown!
+                await asyncio.sleep(1)
+
+        Console.print_line(args.silent)
+        await Executor.execute_meshbook(args,
+                                        session,
+                                        compiled_device_list,
+                                        meshbook,
+                                        group_list)
 
         await session.close()
 
     except OSError as message:
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            Console.text_color.red + f'{message}')
 
     except asyncio.CancelledError:
-        Console.nice_print(args.silent,
+        Console.print_text(args.silent,
                            Console.text_color.red + "Received SIGINT, Aborting - (Tasks may still be running on targets).")
         await session.close()
         raise
@@ -258,4 +259,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        Console.nice_print(False, Console.text_color.red + "Cancelled execution.")
+        Console.print_text(False, Console.text_color.red + "Cancelled execution.")

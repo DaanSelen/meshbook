@@ -1,10 +1,15 @@
 import os
 
-class History():
-    def __init__(self):
-        local_history_dir = "./history"
+from modules.console import Console
 
-        if os.path.exists(local_history_dir):
-            print("History directory does exist")
-        else:
-            print("History directory does not exist")
+class History():
+    def __init__(self, silent, local_directory, flush):
+        Console.print_text(silent, local_directory)
+
+        if not os.path.exists(local_directory):
+            Console.print_text(silent, "Directory absent, trying to create it now...")
+
+            try:
+                os.mkdir(local_directory)
+            except Exception as err:
+                Console.print_text(silent, f"Failed to create directory: " + err)

@@ -23,7 +23,7 @@ class Executor:
         round = 1
 
         for task in meshbook["tasks"]:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                Console.text_color.green + str(round) + ". Running: " + task["name"])
 
             if "powershell" in meshbook and meshbook["powershell"]:
@@ -51,17 +51,16 @@ class Executor:
             offline[index] = device_name
         responses_list["Offline"] = offline
 
-        Console.nice_print(args.silent,
-                           Console.text_color.reset + ("-" * 40))
+        Console.print_line(args.silent)
 
         if args.shlex:
             responses_list = Transform.process_shell_response(args.shlex, responses_list)
 
         if args.indent:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                json.dumps(responses_list,indent=4))
                 
 
         else:
-            Console.nice_print(args.silent,
+            Console.print_text(args.silent,
                                json.dumps(responses_list))
