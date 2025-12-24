@@ -12,12 +12,12 @@ intertask_delay = 1
 
 class Executor:
     @staticmethod
-    async def execute_meshbook(args: argparse.Namespace, session: meshctrl.Session, compiled_device_list: dict, meshbook: dict, group_list: dict) -> None:
+    async def execute_meshbook(args: argparse.Namespace, session: meshctrl.Session, compiled_device_list: dict, meshbook: dict, group_list: dict) -> dict:
         '''
         Actual function that handles meshbook execution, also responsible for formatting the resulting JSON.
         '''
 
-        responses_list = {}
+        complete_log = {}
         targets = compiled_device_list["target_list"]
         offline = compiled_device_list["offline_list"]
         round = 1
@@ -39,7 +39,7 @@ class Executor:
                 response[device]["device_name"] = await Transform.translate_nodeid_to_name(device, group_list)
                 task_batch.append(response[device])
 
-            responses_list["task_" + str(round)] = {
+            complete_log["task_" + str(round)] = {
                 "task_name": task["name"],
                 "data": task_batch
             }
@@ -49,18 +49,9 @@ class Executor:
         for index, device in enumerate(offline): # Replace Device_id with actual human readable name
             device_name = await Transform.translate_nodeid_to_name(device, group_list)
             offline[index] = device_name
-        responses_list["Offline"] = offline
-
-        Console.print_line(args.silent)
+        complete_log["Offline"] = offline
 
         if args.shlex:
-            responses_list = Transform.process_shell_response(args.shlex, responses_list)
+            complete_log = Transform.process_shell_response(args.shlex, complete_log)
 
-        if args.indent:
-            Console.print_text(args.silent,
-                               json.dumps(responses_list,indent=4))
-                
-
-        else:
-            Console.print_text(args.silent,
-                               json.dumps(responses_list))
+        return complete_log

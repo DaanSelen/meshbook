@@ -218,7 +218,7 @@ async def main():
                 target_name = ""
 
         # Initialize the history / logging functions class (whatever you want to name it)
-        historyclass = History(args.silent, args.historydir, args.flushhistory)
+        history = History(args.silent, args.historydir, args.flushhistory)
 
         # Conclude history initlialization
         Console.print_line(args.silent)
@@ -237,11 +237,24 @@ async def main():
                 await asyncio.sleep(1)
 
         Console.print_line(args.silent)
-        await Executor.execute_meshbook(args,
-                                        session,
-                                        compiled_device_list,
-                                        meshbook,
-                                        group_list)
+        complete_log = await Executor.execute_meshbook(args,
+                                                        session,
+                                                        compiled_device_list,
+                                                        meshbook,
+                                                        group_list)
+        Console.print_line(args.silent)
+
+        indent = None
+        if args.indent:
+            indent = 4
+
+        formatted_log = json.dumps(complete_log,indent=indent)
+
+        # Pass the output of the whole program to the history class
+        if not args.nohistory:
+            history.write_history(args.silent, formatted_log)
+
+        Console.print_text(args.silent, formatted_log, 9)
 
         await session.close()
 
