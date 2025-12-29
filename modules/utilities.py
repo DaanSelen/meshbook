@@ -280,15 +280,15 @@ class Utilities:
 
 class Transform:
     @staticmethod
-    def process_shell_response(shlex_enable: bool, meshbook_result: dict) -> dict:
+    def process_shell_response(enable_shlex: bool, meshbook_result: dict) -> dict:
         for task_name, task_data in meshbook_result.items():
-            if task_name == "Offline": # Failsafe
+            if task_name == "Offline": # Failsafe do not parse Offline section, its simple
                 continue
 
             for node_responses in task_data["data"]:
                 task_result = node_responses["result"].splitlines()
                 
-                if shlex_enable:
+                if enable_shlex:
                     for index, line in enumerate(task_result):
                         line = shlex.split(line)
                         task_result[index] = line

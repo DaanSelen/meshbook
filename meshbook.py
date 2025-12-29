@@ -34,7 +34,7 @@ def define_cmdargs() -> argparse.ArgumentParser:
     parser.add_argument("-d", "--device", type=str, help="Specify a manual override for a device.", default="")
     parser.add_argument("-i", "--indent", action="store_true", help="Use an JSON indentation of 4 when this flag is passed.", default=False)
     parser.add_argument("-s", "--silent", action="store_true", help="Suppress terminal output.", default=False)
-    parser.add_argument("--shlex", action="store_true", help="Shlex the lines.", default=False)
+    parser.add_argument("--shlex", action="store_true", help="Shlex the lines. (SHell LEXical Analysis)", default=False)
 
     parser.add_argument("--version", action="store_true", help="Show the Meshbook version.")
 
@@ -237,24 +237,27 @@ async def main():
                 await asyncio.sleep(1)
 
         Console.print_line(args.silent)
-        complete_log = await Executor.execute_meshbook(args,
-                                                        session,
-                                                        compiled_device_list,
-                                                        meshbook,
-                                                        group_list)
+        complete_log = await Executor.execute_meshbook(args.silent,
+                                                    args.shlex,
+                                                    session,
+                                                    compiled_device_list,
+                                                    meshbook,
+                                                    group_list)
         Console.print_line(args.silent)
 
         indent = None
-        if args.indent:
-            indent = 4
+        if args.indent: indent = 4
 
-        formatted_log = json.dumps(complete_log,indent=indent)
+        formatted_history = json.dumps(complete_log,indent=indent)
+
+        Console.print_text(args.silent, formatted_history, 9)
 
         # Pass the output of the whole program to the history class
-        if not args.nohistory:
-            history.write_history(args.silent, formatted_log)
-
-        Console.print_text(args.silent, formatted_log, 9)
+        if args.nohistory:
+            Console.print_text(args.silent, "Not writing to file.")
+        else:
+            Console.print_text(args.silent, "Writing to file...")
+            history.write_history(formatted_history)
 
         await session.close()
 

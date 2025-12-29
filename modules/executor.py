@@ -12,7 +12,7 @@ intertask_delay = 1
 
 class Executor:
     @staticmethod
-    async def execute_meshbook(args: argparse.Namespace, session: meshctrl.Session, compiled_device_list: dict, meshbook: dict, group_list: dict) -> dict:
+    async def execute_meshbook(silent: bool, enable_shlex: bool, session: meshctrl.Session, compiled_device_list: dict, meshbook: dict, group_list: dict) -> dict:
         '''
         Actual function that handles meshbook execution, also responsible for formatting the resulting JSON.
         '''
@@ -23,7 +23,7 @@ class Executor:
         round = 1
 
         for task in meshbook["tasks"]:
-            Console.print_text(args.silent,
+            Console.print_text(silent,
                                Console.text_color.green + str(round) + ". Running: " + task["name"])
 
             if "powershell" in meshbook and meshbook["powershell"]:
@@ -51,7 +51,5 @@ class Executor:
             offline[index] = device_name
         complete_log["Offline"] = offline
 
-        if args.shlex:
-            complete_log = Transform.process_shell_response(args.shlex, complete_log)
-
-        return complete_log
+        # Return the result 
+        return Transform.process_shell_response(enable_shlex, complete_log)
